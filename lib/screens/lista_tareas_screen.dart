@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/tarea.dart';
@@ -38,7 +37,7 @@ class _ListaTareasScreenState extends State<ListaTareasScreen> {
         return Icons.drag_handle;
     }
   }
-  
+
   Color _getPriorityIconColor(String priority) {
     switch (priority) {
       case 'Alta':
@@ -106,7 +105,7 @@ class _ListaTareasScreenState extends State<ListaTareasScreen> {
               }).toList(),
             ),
           ),
-          
+
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance.collection('tareas').orderBy('fecha', descending: true).snapshots(),
@@ -140,7 +139,7 @@ class _ListaTareasScreenState extends State<ListaTareasScreen> {
                   // Filtro por texto
                   final matchesSearch = tarea.titulo.toLowerCase().contains(_searchQuery) ||
                                         tarea.descripcion.toLowerCase().contains(_searchQuery);
-                  
+
                   // Filtro por estado
                   bool matchesStatus = true;
                   if (_filter == 'Pendientes') {
@@ -191,7 +190,47 @@ class _ListaTareasScreenState extends State<ListaTareasScreen> {
                         ),
                       ),
                     ),
-                    
+
+                    // Mini-tarjetas de estadísticas
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _StatCard(
+                              label: 'Pendientes',
+                              value: (totalTareas - completadas).toString(),
+                              color: Colors.orange.shade100,
+                              textColor: Colors.orange.shade800,
+                              icon: Icons.pending_actions,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _StatCard(
+                              label: 'Completadas',
+                              value: completadas.toString(),
+                              color: Colors.green.shade100,
+                              textColor: Colors.green.shade800,
+                              icon: Icons.check_circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _StatCard(
+                              label: 'Alta prioridad',
+                              value: todasLasTareas.where((t) => t.prioridad == 'Alta').length.toString(),
+                              color: Colors.red.shade100,
+                              textColor: Colors.red.shade800,
+                              icon: Icons.keyboard_double_arrow_up,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
                     // Lista de tareas
                     Expanded(
                       child: tareasFiltradas.isEmpty
@@ -271,7 +310,7 @@ class _ListaTareasScreenState extends State<ListaTareasScreen> {
                                       subtitle: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          if (tarea.descripcion.isNotEmpty) 
+                                          if (tarea.descripcion.isNotEmpty)
                                             Padding(
                                               padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
                                               child: Text(
@@ -350,6 +389,53 @@ class _ListaTareasScreenState extends State<ListaTareasScreen> {
         },
         tooltip: 'Agregar Tarea',
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final Color textColor;
+  final IconData icon;
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.textColor,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: textColor, size: 22),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: textColor),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
